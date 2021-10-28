@@ -19,6 +19,7 @@ class User {
       this.phoneNumber,
       this.suspend,
       this.image,
+      this.rollNo,
       this.updatedAt});
 
   String? role,
@@ -29,7 +30,8 @@ class User {
       phoneNumber,
       gender,
       createdAt,
-      updatedAt;
+      updatedAt,
+      rollNo;
   bool? suspend;
 
   factory User.fromJson(Map<String, dynamic> json) => User(
@@ -43,6 +45,20 @@ class User {
       image: json['image'],
       suspend: json['suspend'],
       gender: json['gender']);
+
+  Map<String, dynamic> toJson() => {
+        "_id": id,
+        "role": role,
+        "rollno": rollNo,
+        "createdAt": createdAt,
+        "updatedAt": updatedAt,
+        "phoneNumber": phoneNumber,
+        "email": email,
+        "name": name,
+        "image": image,
+        "suspend": suspend,
+        "gender": gender,
+      };
 }
 
 class StudentLoginResponse {

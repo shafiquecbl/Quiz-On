@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import 'package:quiz_on/Controller/page_controller.dart';
 import 'package:quiz_on/Models/Student/Quiz.dart';
 import 'package:quiz_on/Models/Student/solved_quiz.dart';
+import 'package:quiz_on/Models/Student/student_solved_quiz.dart';
 import 'package:quiz_on/Provider/provider.dart';
 import 'package:quiz_on/Screens/Login/login.dart';
 import 'package:quiz_on/Screens/Score%20Board/quiz_details.dart';
@@ -24,9 +25,7 @@ class ScoreBoard extends StatefulWidget {
 
 class _ScoreBoardState extends State<ScoreBoard> {
   MyPageController controller = MyPageController();
-  Future<List<SolvedQuiz>>? solvedQuiz;
-  bool isLoading = true;
-  List<Quiz1> quizes = [];
+  Future<List<StudentQuiz>>? studentQuiz;
 
   @override
   void initState() {
@@ -36,27 +35,9 @@ class _ScoreBoardState extends State<ScoreBoard> {
 
   getStudentQuiz() {
     CustomProvier provider = Provider.of<CustomProvier>(context, listen: false);
-    APIManager()
-        .getStudentQuiz(
-            token: provider.loginResponse!.token,
-            id: provider.loginResponse!.user!.id)
-        .then((value) {
-      for (var quiz in value) {
-        getQuiz(quiz.quizName!);
-      }
-    });
-  }
-
-  getQuiz(String id) {
-    CustomProvier provider = Provider.of<CustomProvier>(context, listen: false);
-    APIManager()
-        .getQuizById(token: provider.loginResponse!.token, id: id)
-        .then((value) {
-      quizes.add(value);
-      setState(() {
-        isLoading = false;
-      });
-    });
+    studentQuiz = APIManager().getStudentScore(
+        token: provider.loginResponse!.token,
+        id: provider.loginResponse!.user!.id);
   }
 
   @override
@@ -146,12 +127,10 @@ class _ScoreBoardState extends State<ScoreBoard> {
                         ),
                       ),
                       Expanded(
-                        child: FutureBuilder<List<SolvedQuiz>>(
-                          future: APIManager().getStudentQuiz(
-                              token: provider.loginResponse!.token,
-                              id: provider.loginResponse!.user!.id),
+                        child: FutureBuilder<List<StudentQuiz>>(
+                          future: studentQuiz,
                           builder: (BuildContext context,
-                              AsyncSnapshot<List<SolvedQuiz>> snapshot) {
+                              AsyncSnapshot<List<StudentQuiz>> snapshot) {
                             if (snapshot.connectionState ==
                                 ConnectionState.waiting) return MyLoading();
 
@@ -159,7 +138,7 @@ class _ScoreBoardState extends State<ScoreBoard> {
                             if (snapshot.data == null)
                               return NetworkError(onPressed: () {
                                 setState(() {
-                                  solvedQuiz = APIManager().getStudentQuiz(
+                                  studentQuiz = APIManager().getStudentScore(
                                       token: provider.loginResponse!.token,
                                       id: provider.loginResponse!.user!.id);
                                 });
@@ -171,9 +150,7 @@ class _ScoreBoardState extends State<ScoreBoard> {
                                 child: Text('No Quiz Available'),
                               );
 
-                            return isLoading == true
-                                ? MyLoading()
-                                : quizList(list: snapshot.data);
+                            return quizList(sQuiz: snapshot.data);
                           },
                         ),
                       ),
@@ -188,28 +165,28 @@ class _ScoreBoardState extends State<ScoreBoard> {
     );
   }
 
-  quizList({@required List<SolvedQuiz>? list}) {
+  quizList({@required List<StudentQuiz>? sQuiz}) {
     return GridView.builder(
-        itemCount: list!.length,
+        itemCount: sQuiz!.length,
         gridDelegate: SliverGridDelegateWithMaxCrossAxisExtent(
             maxCrossAxisExtent: 300,
             childAspectRatio: 3 / 2.3,
             crossAxisSpacing: 25,
             mainAxisSpacing: 25),
         itemBuilder: (context, index) {
-          return quiz(quiz: list[index], index: index);
+          return quiz(quiz: sQuiz[index], index: index);
         });
   }
 
-  quiz({@required SolvedQuiz? quiz, @required int? index}) {
+  quiz({@required StudentQuiz? quiz, @required int? index}) {
     return CourseCard(
-      text: quizes[index!].quizName,
+      text: quiz!.quiz!.quizName,
       onPressed: () {
         Navigator.push(
             context,
             MaterialPageRoute(
                 builder: (builder) =>
-                    QuizDetails(solvedQuiz: quiz, quiz: quizes[index])));
+                    QuizDetails(solvedQuiz: quiz.solvedQuiz, quiz: quiz.quiz)));
       },
       icon: Icons.library_books_outlined,
     );

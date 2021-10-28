@@ -39,13 +39,23 @@ android {
         targetSdkVersion 30
         versionCode flutterVersionCode.toInteger()
         versionName flutterVersionName
+        multiDexEnabled true
     }
+
+    signingConfigs {
+    release {
+        storeFile file('myKeystore.keystore')
+        storePassword 'securehops'
+        keyAlias 'my_key_alias'
+        keyPassword 'securehops'
+    }
+}
 
     buildTypes {
         release {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig signingConfigs.debug
+            signingConfig signingConfigs.release
         }
     }
 }

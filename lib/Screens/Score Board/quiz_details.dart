@@ -1,12 +1,17 @@
+import 'package:cached_network_image/cached_network_image.dart';
+import 'package:carousel_slider/carousel_slider.dart';
 import 'package:flutter/material.dart';
 import 'package:percent_indicator/circular_percent_indicator.dart';
 import 'package:quiz_on/Models/Student/Quiz.dart';
 import 'package:quiz_on/Models/Student/solved_quiz.dart';
+import 'package:quiz_on/Models/Student/student_solved_quiz.dart';
 import 'package:quiz_on/constants.dart';
+
+import 'components/option.dart';
 
 class QuizDetails extends StatefulWidget {
   final SolvedQuiz? solvedQuiz;
-  final Quiz1? quiz;
+  final Quizz? quiz;
   const QuizDetails({@required this.solvedQuiz, @required this.quiz});
 
   @override
@@ -36,39 +41,30 @@ class _QuizDetailsState extends State<QuizDetails> {
           padding: EdgeInsets.symmetric(
             horizontal: 10,
           ),
-          child: Column(
-            children: [
-              scoreDetails(quiz: widget.quiz),
-              Divider(),
-              percentageWidget(),
-              Divider(),
-              Expanded(
-                  flex: 4,
-                  child: Scrollbar(
-                    showTrackOnHover: true,
-                    isAlwaysShown: true,
-                    interactive: true,
-                    controller: controller,
-                    child: ListView.separated(
-                        controller: controller,
-                        separatorBuilder: (context, index) {
-                          return Divider();
-                        },
-                        itemCount: widget.quiz!.question!.length,
-                        itemBuilder: (context, index) {
-                          Question1 question = widget.quiz!.question![index];
-                          return questionData(question: question);
-                        }),
-                  )),
-              SizedBox(
-                height: 10,
-              )
-            ],
+          child: SingleChildScrollView(
+            child: Column(
+              children: [
+                scoreDetails(quiz: widget.quiz),
+                Divider(),
+                percentageWidget(),
+                Divider(),
+                for (int index = 0;
+                    index <= widget.quiz!.question!.length - 1;
+                    index++)
+                  questionData(
+                      question: widget.quiz!.question![index],
+                      submittedAnswer:
+                          widget.solvedQuiz!.submittedAnswer![index]),
+                SizedBox(
+                  height: 10,
+                )
+              ],
+            ),
           ),
         ));
   }
 
-  scoreDetails({@required Quiz1? quiz}) {
+  scoreDetails({@required Quizz? quiz}) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceEvenly,
       children: [
@@ -198,7 +194,9 @@ class _QuizDetailsState extends State<QuizDetails> {
     );
   }
 
-  questionData({@required Question1? question}) {
+  questionData(
+      {@required Question1? question,
+      @required SubmittedAnswer? submittedAnswer}) {
     return Wrap(
       direction: Axis.vertical,
       children: [
@@ -217,7 +215,7 @@ class _QuizDetailsState extends State<QuizDetails> {
               question!.questionStatement.toString(),
               style: TextStyle(
                 color: Colors.black,
-                fontSize: 20,
+                fontSize: 16,
               ),
             ),
           ),
@@ -225,28 +223,68 @@ class _QuizDetailsState extends State<QuizDetails> {
         SizedBox(
           height: 20,
         ),
+        question.questionImage!.length != 0
+            ? Padding(
+                padding: const EdgeInsets.symmetric(horizontal: 10),
+                child: Container(
+                  width: MediaQuery.of(context).size.width / 1.1,
+                  child: CarouselSlider(
+                    options: CarouselOptions(
+                      viewportFraction: 2.0,
+                      height: 450,
+                      enableInfiniteScroll: false,
+                    ),
+                    items: question.questionImage!.map((i) {
+                      return Builder(
+                        builder: (BuildContext context) {
+                          return Container(
+                            width: MediaQuery.of(context).size.width,
+                            child: CachedNetworkImage(
+                              imageUrl: i,
+                              placeholder: (context, string) {
+                                return Center(
+                                  child: CircularProgressIndicator(),
+                                );
+                              },
+                              errorWidget: (context, string, dynamic) {
+                                return Icon(Icons.image);
+                              },
+                            ),
+                          );
+                        },
+                      );
+                    }).toList(),
+                  ),
+                ),
+              )
+            : Container(),
+
+        //////////////////////////////////////////////////////
+
+        submittedAnswer!.answer != question.answer
+            ? OptionWidgett(
+                text: submittedAnswer.answer.toString(),
+                isTrue: false,
+              )
+            : Container(),
+
+        submittedAnswer.answer != question.answer
+            ? SizedBox(
+                height: 10,
+              )
+            : Container(),
+
+        OptionWidgett(
+          text: question.answer.toString(),
+          isTrue: true,
+        ),
+        SizedBox(
+          height: 10,
+        ),
         Container(
-            width: MediaQuery.of(context).size.width / 1.15,
-            margin: EdgeInsets.only(top: 10),
-            padding: EdgeInsets.symmetric(horizontal: 10),
-            decoration: BoxDecoration(
-              border: Border.all(),
-              borderRadius: BorderRadius.circular(15),
-            ),
-            child: ListTile(
-              contentPadding: EdgeInsets.symmetric(vertical: 0, horizontal: 5),
-              leading: Text(
-                'Answer.',
-                style: TextStyle(
-                    fontSize: 16,
-                    color: Colors.blue,
-                    fontWeight: FontWeight.w600),
-              ),
-              title: Text(
-                question.answer.toString(),
-                style: TextStyle(fontSize: 16),
-              ),
-            )),
+            width: MediaQuery.of(context).size.width,
+            height: 0.8,
+            color: Colors.grey[300])
       ],
     );
   }

@@ -6,6 +6,7 @@ import 'package:quiz_on/Models/Admin_Login.dart';
 import 'package:quiz_on/Models/Student/Quiz.dart';
 import 'package:quiz_on/Models/Student/solved_quiz.dart';
 import 'package:quiz_on/Models/Student/student_courses.dart';
+import 'package:quiz_on/Models/Student/student_solved_quiz.dart';
 import 'package:quiz_on/Models/Student/student_subjects.dart';
 import 'package:quiz_on/Models/Student/submit_quiz.dart';
 import 'package:quiz_on/Models/User.dart';
@@ -16,7 +17,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 class APIManager {
   var client = http.Client();
   var loginResponse;
-  String baseUrl = 'http://192.168.100.84:4000';
+  String baseUrl = 'http://192.168.100.70:4000';
   Dio dio = Dio();
 
   ///////////////////////////////////////////////////////////
@@ -131,6 +132,20 @@ class APIManager {
         }).then((response) async {
       List<SolvedQuiz> jsonMap = (json.decode(response.body) as List)
           .map((e) => SolvedQuiz.fromJson(e))
+          .toList();
+      return jsonMap;
+    });
+  }
+
+  Future<List<StudentQuiz>> getStudentScore(
+      {@required token, @required String? id}) async {
+    return await client.get(
+        Uri.parse('$baseUrl/api/solvedQuizData/getStudentScore/$id'),
+        headers: {
+          'Authorization': 'Bearer $token',
+        }).then((response) async {
+      List<StudentQuiz> jsonMap = (json.decode(response.body) as List)
+          .map((e) => StudentQuiz.fromJson(e))
           .toList();
       return jsonMap;
     });
