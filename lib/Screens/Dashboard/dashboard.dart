@@ -51,10 +51,13 @@ class _DashboardState extends State<Dashboard> {
                           leading: CircleAvatar(
                               radius: 30,
                               child: ClipRRect(
-                                borderRadius: BorderRadius.circular(50),
+                                borderRadius: BorderRadius.circular(30),
                                 child: CachedNetworkImage(
                                   imageUrl: provider.loginResponse!.user!.image
                                       .toString(),
+                                  fit: BoxFit.cover,
+                                  width: 56,
+                                  height: 56,
                                   placeholder: (context, string) {
                                     return Center(
                                         child: Icon(
